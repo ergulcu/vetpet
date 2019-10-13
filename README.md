@@ -1,2 +1,2 @@
 # vetpet
-basic vet automation demo
+basic vet automation demo on java spring boot
