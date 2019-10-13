@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="en" xmlns="http://www.w3.org/1999/xhtml" xmlns:th="http://www.thymeleaf.org">
+    <head>
+        <title>create pet</title>
+        <meta charset="UTF-8">
+            <meta http-equiv="X-UA-Compatible" content="IE=edge"/>
+            <meta name="viewport" content="width=device-width, initial-scale=1"/>
+            <link rel="stylesheet" th:href="@{/css/bootstrap.min.css}"/>
+    </head>
+    <body>
+        <div class="container">
+            <form action="#" th:action="@{/pet/create}" th:object="${pet}" method="post">
+                <div class="form-group">
+                    <label for="name">Name</label>
+                    <input type="text" class="form-control col-lg-4" th:field="*{name}" id="name" placeholder="Name">
+                        <span th:if="${#fields.hasErrors('name')}" th:errors="*{name}"></span>
+                </div>
+                <div class="form-group">
+                    <label for="type">Type</label>
+                    <input type="text" class="form-control col-lg-4" th:field="*{type}" id="type" placeholder="Type">
+                        <span th:if="${#fields.hasErrors('type')}" th:errors="*{type}"></span>
+                </div>
+                <div class="form-group">
+                    <label for="kind">Kind</label>
+                    <input type="text" class="form-control col-lg-4" th:field="*{kind}" id="kind" placeholder="Kind">
+                        <span th:if="${#fields.hasErrors('kind')}" th:errors="*{kind}"></span>
+                </div>
+                <div class="form-group">
+                    <label for="age">Age</label>
+                    <input type="text" class="form-control col-lg-4" th:field="*{age}" id="age" placeholder="Age">
+                </div>
+                <div class="form-group">
+                    <label for="owner">Owner</label>
+                    <select id="owner" name="owner" th:field="*{owner}" class="form-control col-lg-4" placeholder="Owner">
+                        <option value="0">Select Owner</option>
+                        <option th:each="o : ${owners}"  th:value="${o.id}" th:text="${o.name}"></option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="description">Description</label>
+                    <input type="text" class="form-control col-lg-4" th:field="*{description}" id="description" placeholder="Description">
+                </div>
+                <div class="form-group">
+                    <input type="submit" class="btn btn-primary"  value="Create Pet">  
+                </div>
+
+            </form>
+        </div>
+        <script type="text/javascript" th:src="@{/js/jquery-3.4.1.min.js}"></script>
+    </body>
+</html>
