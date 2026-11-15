@@ -1,84 +1,64 @@
 <!DOCTYPE html>
-<html lang="en" xmlns="http://www.w3.org/1999/xhtml" xmlns:th="http://www.thymeleaf.org">
-    <head>
-        <title>list pet</title>
-        <meta charset="UTF-8">
-            <meta http-equiv="X-UA-Compatible" content="IE=edge"/>
-            <meta name="viewport" content="width=device-width, initial-scale=1"/>
-            <link rel="stylesheet" th:href="@{/css/bootstrap.min.css}"/>
-    </head>
-    <body>
-        <div class="container">
-            <nav class="navbar navbar-expand-md navbar-dark bg-primary">
-                <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
-                    <span class="navbar-toggler-icon"></span>
-                </button>
-                <div class="collapse navbar-collapse" id="navbarNav">
-                    <ul class="navbar-nav mr-auto">
-                        <li class="nav-item">
-                            <a class="nav-link" href="/owner/list">Owners</a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link" href="/pet/list">Pets</a>
-                        </li>
-                    </ul>
-                    <span class="navbar-text">
-                        User:[[${#httpServletRequest.remoteUser}]]
-                    </span>
-                    <form class="form-inline" th:action="@{/logout}" method="post">
-                            <button class="btn btn-outline-success my-2 my-sm-0" type="submit">Sign Out</button>
-                    </form>
-                </div>
-            </nav>
-        </div>
-        <div class="container">
-            <form action="#" th:action="@{/pet/list}" th:object="${pet}" method="post">
-                <div class="form-group row">
-                    <label class="col-sm-2 col-form-label" for="name">Search:</label>
-                    <div class="col-sm-3">
-                        <input type="text" class="form-control" th:field="*{name}" id="name" placeholder="Name">
-                    </div>
-                    <div class="col-sm-3">
-                        <input type="submit"  class="btn btn-primary" value="Search Pet">
-                    </div>
-                    
-                </div>
-            </form>
-            <div th:switch="${pets}">
-                <a class="btn btn-success" href="/pet/create" role="button">Add a pet</a>
-                <h2 th:case="null">No pets yet!</h2>
-                <div th:case="*">
-                    <h2>Pets</h2>
-                    <table class="table">
-                        <thead>
-                            <tr>
-                                <th scope="col">Name</th>
-                                <th scope="col">Type</th>
-                                <th scope="col">Kind</th>
-                                <th scope="col">Age</th>
-                                <th scope="col">Description</th>
-                                <th scope="col">Owner</th>
-                                <th scope="col">Edit</th>
-                                <th scope="col">Delete</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            <tr th:each="pet : ${pets}">
-                                <td th:text="${pet.name}"></td>
-                                <td th:text="${pet.type}"></td>
-                                <td th:text="${pet.kind}"></td>
-                                <td th:text="${pet.age}"></td>
-                                <td th:text="${pet.description}"></td>
-                                <td th:text="${pet.owner}"></td>
-                                <td><a th:href="@{/pet/update/{id}(id=${pet.id})}">Edit</a></td>
-                                <td><a th:href="@{/pet/delete/{id}(id=${pet.id})}">Delete</a></td>
-                            </tr>
-                        </tbody>
-                    </table>
-                </div>      
+<!--
+  Copyright 2019 Mehmet ERGULCU
+  SPDX-License-Identifier: Apache-2.0
+-->
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/layout :: head('Pets')}"></head>
+<body>
+<nav th:replace="~{fragments/layout :: nav('pets')}"></nav>
+<main class="container">
+    <div th:replace="~{fragments/layout :: messages}"></div>
 
-            </div>
+    <div class="d-flex flex-wrap gap-2 justify-content-between align-items-center mb-3">
+        <h1 class="h3 mb-0">Pets</h1>
+        <a class="btn btn-success" th:href="@{/pet/create}">Add a pet</a>
+    </div>
+
+    <form th:action="@{/pet/list}" method="get" class="row g-2 mb-3" role="search">
+        <div class="col-sm-6 col-md-4">
+            <label for="name" class="visually-hidden">Name</label>
+            <input type="search" class="form-control" id="name" name="name" th:value="${name}" placeholder="Search by name">
         </div>
-        <script type="text/javascript" th:src="@{/js/jquery-3.4.1.min.js}"></script>
-    </body>
+        <div class="col-auto">
+            <button type="submit" class="btn btn-primary">Search</button>
+        </div>
+    </form>
+
+    <p th:if="${#lists.isEmpty(pets)}" class="text-body-secondary">No pets found.</p>
+    <div class="table-responsive" th:unless="${#lists.isEmpty(pets)}">
+        <table class="table table-striped align-middle">
+            <thead>
+            <tr>
+                <th scope="col">Name</th>
+                <th scope="col">Type</th>
+                <th scope="col">Kind</th>
+                <th scope="col">Age</th>
+                <th scope="col">Description</th>
+                <th scope="col">Owner</th>
+                <th scope="col" class="text-end">Actions</th>
+            </tr>
+            </thead>
+            <tbody>
+            <tr th:each="pet : ${pets}">
+                <td th:text="${pet.name}">Name</td>
+                <td th:text="${pet.type}">Type</td>
+                <td th:text="${pet.kind}">Kind</td>
+                <td th:text="${pet.age}">Age</td>
+                <td th:text="${pet.description}">Description</td>
+                <td th:text="${pet.owner.name}">Owner</td>
+                <td class="text-end">
+                    <a class="btn btn-sm btn-outline-primary" th:href="@{/pet/update/{id}(id=${pet.id})}">Edit</a>
+                    <form th:if="${isAdmin}" th:action="@{/pet/delete/{id}(id=${pet.id})}" method="post" class="d-inline"
+                          onsubmit="return confirm('Delete this pet?');">
+                        <button type="submit" class="btn btn-sm btn-outline-danger">Delete</button>
+                    </form>
+                </td>
+            </tr>
+            </tbody>
+        </table>
+    </div>
+</main>
+<th:block th:replace="~{fragments/layout :: scripts}"></th:block>
+</body>
 </html>

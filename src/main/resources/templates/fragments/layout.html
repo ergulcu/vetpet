@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<!--
+  Copyright 2019 Mehmet ERGULCU
+  SPDX-License-Identifier: Apache-2.0
+-->
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head th:fragment="head(title)">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title th:text="${title} + ' · VetPet'">VetPet</title>
+    <link rel="stylesheet" th:href="@{/webjars/bootstrap/css/bootstrap.min.css}">
+    <link rel="stylesheet" th:href="@{/css/main.css}">
+</head>
+<body>
+
+<nav th:fragment="nav(active)" class="navbar navbar-expand-md navbar-dark bg-primary mb-4">
+    <div class="container">
+        <a class="navbar-brand" th:href="@{/}">VetPet</a>
+        <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav"
+                aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+            <span class="navbar-toggler-icon"></span>
+        </button>
+        <div class="collapse navbar-collapse" id="navbarNav">
+            <ul class="navbar-nav me-auto">
+                <li class="nav-item">
+                    <a class="nav-link" th:classappend="${active == 'owners'} ? 'active'" th:href="@{/owner/list}">Owners</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" th:classappend="${active == 'pets'} ? 'active'" th:href="@{/pet/list}">Pets</a>
+                </li>
+            </ul>
+            <span class="navbar-text me-3" th:if="${currentUser}">User: <strong th:text="${currentUser}">user</strong></span>
+            <form th:action="@{/logout}" method="post" class="d-flex">
+                <button class="btn btn-outline-light btn-sm" type="submit">Sign out</button>
+            </form>
+        </div>
+    </div>
+</nav>
+
+<div th:fragment="messages">
+    <div class="alert alert-success" role="alert" th:if="${message}" th:text="${message}">Saved</div>
+    <div class="alert alert-danger" role="alert" th:if="${error}" th:text="${error}">Error</div>
+</div>
+
+<th:block th:fragment="scripts">
+    <script th:src="@{/webjars/bootstrap/js/bootstrap.bundle.min.js}"></script>
+</th:block>
+
+</body>
+</html>

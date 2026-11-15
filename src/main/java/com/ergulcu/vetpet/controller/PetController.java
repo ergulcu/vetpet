@@ -1,84 +1,100 @@
+// Copyright 2019 Mehmet ERGULCU
+// SPDX-License-Identifier: Apache-2.0
+
 package com.ergulcu.vetpet.controller;
 
 import com.ergulcu.vetpet.dao.OwnerRepository;
 import com.ergulcu.vetpet.dao.PetRepository;
+import com.ergulcu.vetpet.model.Owner;
 import com.ergulcu.vetpet.model.Pet;
-import javax.validation.Valid;
-import org.springframework.beans.factory.annotation.Autowired;
+import jakarta.validation.Valid;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.validation.BindingResult;
-import org.springframework.validation.ObjectError;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.server.ResponseStatusException;
+import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
-/**
- *
- * @author Mehmet ERGÜLCÜ
- */
+import java.util.List;
+
 @Controller
+@RequestMapping("/pet")
 public class PetController {
 
-    @Autowired
-    private PetRepository petRepository;
-    @Autowired
-    private OwnerRepository ownerRepository;
+    private final PetRepository petRepository;
+    private final OwnerRepository ownerRepository;
 
-    @GetMapping("/pet/list")
-    public String listPet(Pet pet,Model model) {
-        model.addAttribute("pets", petRepository.findAll());
-        return "pet/list";
-    }
-    
-    @PostMapping("/pet/list")
-    public String filterPet(Pet pet, Model model) {
-        model.addAttribute("pets", petRepository.findByNameContainingIgnoreCase(pet.getName()));
-        return "pet/list";
+    public PetController(PetRepository petRepository, OwnerRepository ownerRepository) {
+        this.petRepository = petRepository;
+        this.ownerRepository = ownerRepository;
     }
 
-    @GetMapping("/pet/create")
-    public String addPet(Pet pet, Model model) {
-        model.addAttribute("owners", ownerRepository.findAll());
+    /** The owner drop-down of the create and update forms. */
+    @ModelAttribute("owners")
+    public List<Owner> owners() {
+        return ownerRepository.findAllByOrderByName();
+    }
+
+    @GetMapping("/list")
+    public String list(@RequestParam(required = false) String name, Model model) {
+        model.addAttribute("name", name);
+        model.addAttribute("pets", name == null || name.isBlank()
+                ? petRepository.findAllByOrderByName()
+                : petRepository.findByNameContainingIgnoreCaseOrderByName(name.strip()));
+        return "pet/list";
+    }
+
+    @GetMapping("/create")
+    public String createForm(@ModelAttribute Pet pet) {
         return "pet/create";
-
     }
 
-    @PostMapping("/pet/create")
-    public String addPet(@Valid Pet pet, BindingResult result ,Model model) {
+    @PostMapping("/create")
+    public String create(@Valid @ModelAttribute Pet pet, BindingResult result, RedirectAttributes redirect) {
         if (result.hasErrors()) {
-            for (ObjectError error : result.getAllErrors()) {
-                System.out.println(error);
-            }
-            System.out.println();
             return "pet/create";
         }
+        pet.setId(null);
         petRepository.save(pet);
+        redirect.addFlashAttribute("message", "Pet " + pet.getName() + " was created");
         return "redirect:/pet/list";
     }
 
-    @GetMapping("/pet/update/{id}")
-    public String showUpdateForm(@PathVariable("id") long id, Model model) {
-        Pet pet = petRepository.findById(id).orElseThrow(() -> new IllegalArgumentException("Invalid pet Id:" + id));
-        model.addAttribute("pet", pet);
-        model.addAttribute("owners", ownerRepository.findAll());
+    @GetMapping("/update/{id}")
+    public String updateForm(@PathVariable long id, Model model) {
+        model.addAttribute("pet", find(id));
         return "pet/update";
     }
 
-    @PostMapping("/pet/update/{id}")
-    public String updatePet(@PathVariable("id") long id, @Valid Pet pet, BindingResult result) {
+    @PostMapping("/update/{id}")
+    public String update(@PathVariable long id, @Valid @ModelAttribute Pet pet, BindingResult result,
+                         RedirectAttributes redirect) {
+        find(id);
+        pet.setId(id);
         if (result.hasErrors()) {
-            pet.setId(id);
             return "pet/update";
         }
         petRepository.save(pet);
+        redirect.addFlashAttribute("message", "Pet " + pet.getName() + " was updated");
         return "redirect:/pet/list";
     }
 
-    @GetMapping("/pet/delete/{id}")
-    public String deletePet(@PathVariable("id") long id) {
-        Pet pet = petRepository.findById(id).orElseThrow(() -> new IllegalArgumentException("Invalid pet Id:" + id));
+    @PostMapping("/delete/{id}")
+    public String delete(@PathVariable long id, RedirectAttributes redirect) {
+        Pet pet = find(id);
         petRepository.delete(pet);
+        redirect.addFlashAttribute("message", "Pet " + pet.getName() + " was deleted");
         return "redirect:/pet/list";
+    }
+
+    private Pet find(long id) {
+        return petRepository.findById(id)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Pet " + id + " not found"));
     }
 }

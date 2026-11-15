@@ -1,0 +1,20 @@
+# Copyright 2019 Mehmet ERGULCU
+# SPDX-License-Identifier: Apache-2.0
+
+# One weekly pull request per ecosystem; security updates are opened right away.
+version: 2
+updates:
+  - package-ecosystem: maven
+    directory: /
+    schedule:
+      interval: weekly
+    groups:
+      maven:
+        patterns: ["*"]
+  - package-ecosystem: github-actions
+    directory: /
+    schedule:
+      interval: weekly
+    groups:
+      github_actions:
+        patterns: ["*"]

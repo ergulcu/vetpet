@@ -1,46 +1,69 @@
+// Copyright 2019 Mehmet ERGULCU
+// SPDX-License-Identifier: Apache-2.0
+
 package com.ergulcu.vetpet.model;
 
-import javax.persistence.Entity;
-import javax.persistence.GeneratedValue;
-import javax.persistence.GenerationType;
-import javax.persistence.Id;
-import javax.persistence.JoinColumn;
-import javax.persistence.ManyToOne;
-import javax.validation.constraints.NotBlank;
+import jakarta.persistence.Entity;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
+import jakarta.persistence.Id;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.ManyToOne;
+import jakarta.validation.constraints.Max;
+import jakarta.validation.constraints.Min;
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.Size;
 
-/**
- *
- * @author Mehmet ERGÜLCÜ
- */
+import java.util.Objects;
+
 @Entity
 public class Pet {
 
     @Id
-    @GeneratedValue(strategy = GenerationType.AUTO)
-    private long id;
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long id;
 
-    @ManyToOne
-    @JoinColumn(name = "owner_id", referencedColumnName = "id")
+    @NotNull(message = "Owner is mandatory")
+    @ManyToOne(optional = false)
+    @JoinColumn(name = "owner_id")
     private Owner owner;
 
     @NotBlank(message = "Name is mandatory")
+    @Size(max = 100)
     private String name;
 
     @NotBlank(message = "Type is mandatory")
+    @Size(max = 50)
     private String type;
 
-    @NotBlank(message = "kind is mandatory")
+    @NotBlank(message = "Kind is mandatory")
+    @Size(max = 50)
     private String kind;
 
-    private int age;
+    @Min(value = 0, message = "Age cannot be negative")
+    @Max(value = 100, message = "Age is not realistic")
+    private Integer age;
 
+    @Size(max = 500)
     private String description;
 
-    public long getId() {
+    public Pet() {
+    }
+
+    public Pet(Owner owner, String name, String type, String kind, Integer age) {
+        this.owner = owner;
+        this.name = name;
+        this.type = type;
+        this.kind = kind;
+        this.age = age;
+    }
+
+    public Long getId() {
         return id;
     }
 
-    public void setId(long id) {
+    public void setId(Long id) {
         this.id = id;
     }
 
@@ -76,11 +99,11 @@ public class Pet {
         this.kind = kind;
     }
 
-    public int getAge() {
+    public Integer getAge() {
         return age;
     }
 
-    public void setAge(int age) {
+    public void setAge(Integer age) {
         this.age = age;
     }
 
@@ -97,18 +120,16 @@ public class Pet {
         if (this == obj) {
             return true;
         }
-        if (obj instanceof Pet) {
-            Pet aPet = (Pet) obj;
-            return id == aPet.id;
-        }
-        return false;
+        return obj instanceof Pet other && id != null && id.equals(other.id);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hashCode(Pet.class);
     }
 
     @Override
     public String toString() {
         return name;
     }
-    
-    
-
 }

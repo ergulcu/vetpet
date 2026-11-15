@@ -1,0 +1,27 @@
+# Copyright 2019 Mehmet ERGULCU
+# SPDX-License-Identifier: Apache-2.0
+
+server:
+  port: 8080
+
+spring:
+  application:
+    name: vetpet
+  jpa:
+    open-in-view: false
+  thymeleaf:
+    cache: false
+
+# Demo accounts. Override the passwords outside development, for example with the
+# VETPET_SECURITY_ADMIN_PASSWORD and VETPET_SECURITY_USER_PASSWORD environment variables.
+vetpet:
+  security:
+    admin-password: admin
+    user-password: user
+
+logging:
+  level:
+    root: WARN
+    com.ergulcu.vetpet: INFO
+    org.springframework.web: INFO
+    org.springframework.security: INFO

@@ -1,74 +1,97 @@
+// Copyright 2019 Mehmet ERGULCU
+// SPDX-License-Identifier: Apache-2.0
+
 package com.ergulcu.vetpet.controller;
 
 import com.ergulcu.vetpet.dao.OwnerRepository;
+import com.ergulcu.vetpet.dao.PetRepository;
 import com.ergulcu.vetpet.model.Owner;
-import javax.validation.Valid;
-import org.springframework.beans.factory.annotation.Autowired;
+import jakarta.validation.Valid;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.server.ResponseStatusException;
+import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
-/**
- *
- * @author Mehmet ERGÜLCÜ
- */
 @Controller
+@RequestMapping("/owner")
 public class OwnerController {
 
-    @Autowired
-    private OwnerRepository ownerRepository;
+    private final OwnerRepository ownerRepository;
+    private final PetRepository petRepository;
 
-    @GetMapping("/owner/list")
-    public String listOwner(Owner owner, Model model) {
-        model.addAttribute("owners", ownerRepository.findAll());
-        return "owner/list";
-    }
-    
-    @PostMapping("/owner/list")
-    public String filterOwner(Owner owner, Model model) {
-        model.addAttribute("owners", ownerRepository.findByNameContainingIgnoreCase(owner.getName()));
-        return "owner/list";
+    public OwnerController(OwnerRepository ownerRepository, PetRepository petRepository) {
+        this.ownerRepository = ownerRepository;
+        this.petRepository = petRepository;
     }
 
-    @GetMapping("/owner/create")
-    public String addOwner(Owner owner) {
+    @GetMapping("/list")
+    public String list(@RequestParam(required = false) String name, Model model) {
+        model.addAttribute("name", name);
+        model.addAttribute("owners", name == null || name.isBlank()
+                ? ownerRepository.findAllByOrderByName()
+                : ownerRepository.findByNameContainingIgnoreCaseOrderByName(name.strip()));
+        return "owner/list";
+    }
+
+    @GetMapping("/create")
+    public String createForm(@ModelAttribute Owner owner) {
         return "owner/create";
-
     }
 
-    @PostMapping("/owner/create")
-    public String addOwner(@Valid Owner owner, BindingResult result,Model model) {
+    @PostMapping("/create")
+    public String create(@Valid @ModelAttribute Owner owner, BindingResult result, RedirectAttributes redirect) {
         if (result.hasErrors()) {
             return "owner/create";
         }
+        owner.setId(null);
         ownerRepository.save(owner);
+        redirect.addFlashAttribute("message", "Owner " + owner.getName() + " was created");
         return "redirect:/owner/list";
     }
 
-    @GetMapping("/owner/update/{id}")
-    public String showUpdateForm(@PathVariable("id") long id, Model model) {
-        Owner owner = ownerRepository.findById(id).orElseThrow(() -> new IllegalArgumentException("Invalid owner Id:" + id));
-        model.addAttribute("owner", owner);
+    @GetMapping("/update/{id}")
+    public String updateForm(@PathVariable long id, Model model) {
+        model.addAttribute("owner", find(id));
         return "owner/update";
     }
 
-    @PostMapping("/owner/update/{id}")
-    public String updateOwner(@PathVariable("id") long id, @Valid Owner owner, BindingResult result) {
+    @PostMapping("/update/{id}")
+    public String update(@PathVariable long id, @Valid @ModelAttribute Owner owner, BindingResult result,
+                         RedirectAttributes redirect) {
+        find(id);
+        owner.setId(id);
         if (result.hasErrors()) {
-            owner.setId(id);
             return "owner/update";
         }
         ownerRepository.save(owner);
+        redirect.addFlashAttribute("message", "Owner " + owner.getName() + " was updated");
         return "redirect:/owner/list";
     }
 
-    @GetMapping("/owner/delete/{id}")
-    public String deleteOwner(@PathVariable("id") long id) {
-        Owner owner = ownerRepository.findById(id).orElseThrow(() -> new IllegalArgumentException("Invalid owner Id:" + id));
-        ownerRepository.delete(owner);
+    @PostMapping("/delete/{id}")
+    public String delete(@PathVariable long id, RedirectAttributes redirect) {
+        Owner owner = find(id);
+        long pets = petRepository.countByOwnerId(id);
+        if (pets > 0) {
+            redirect.addFlashAttribute("error",
+                    owner.getName() + " still has " + pets + " pet(s); delete or move them first");
+        } else {
+            ownerRepository.delete(owner);
+            redirect.addFlashAttribute("message", "Owner " + owner.getName() + " was deleted");
+        }
         return "redirect:/owner/list";
+    }
+
+    private Owner find(long id) {
+        return ownerRepository.findById(id)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Owner " + id + " not found"));
     }
 }

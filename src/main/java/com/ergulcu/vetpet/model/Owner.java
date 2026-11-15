@@ -1,34 +1,50 @@
+// Copyright 2019 Mehmet ERGULCU
+// SPDX-License-Identifier: Apache-2.0
+
 package com.ergulcu.vetpet.model;
 
-import javax.persistence.Entity;
-import javax.persistence.GeneratedValue;
-import javax.persistence.GenerationType;
-import javax.persistence.Id;
-import javax.validation.constraints.NotBlank;
+import jakarta.persistence.Entity;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
+import jakarta.persistence.Id;
+import jakarta.validation.constraints.Email;
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.Size;
 
-/**
- *
- * @author Mehmet ERGÜLCÜ
- */
+import java.util.Objects;
+
 @Entity
 public class Owner {
 
     @Id
-    @GeneratedValue(strategy = GenerationType.AUTO)
-    private long id;
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long id;
 
     @NotBlank(message = "Name is mandatory")
+    @Size(max = 100)
     private String name;
 
+    @Email(message = "Email is not valid")
+    @Size(max = 200)
     private String email;
 
+    @Size(max = 30)
     private String phone;
 
-    public long getId() {
+    public Owner() {
+    }
+
+    public Owner(String name, String email, String phone) {
+        this.name = name;
+        this.email = email;
+        this.phone = phone;
+    }
+
+    public Long getId() {
         return id;
     }
 
-    public void setId(long id) {
+    public void setId(Long id) {
         this.id = id;
     }
 
@@ -61,16 +77,16 @@ public class Owner {
         if (this == obj) {
             return true;
         }
-        if (obj instanceof Owner) {
-            Owner aOwner = (Owner) obj;
-            return id == aOwner.id;
-        }
-        return false;
+        return obj instanceof Owner other && id != null && id.equals(other.id);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hashCode(Owner.class);
     }
 
     @Override
     public String toString() {
         return name;
     }
-
 }

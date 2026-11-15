@@ -1,13 +1,16 @@
+// Copyright 2019 Mehmet ERGULCU
+// SPDX-License-Identifier: Apache-2.0
+
 package com.ergulcu.vetpet.dao;
 
 import com.ergulcu.vetpet.model.Owner;
-import java.util.List;
-import org.springframework.data.repository.CrudRepository;
+import org.springframework.data.jpa.repository.JpaRepository;
 
-/**
- *
- * @author Mehmet ERGÜLCÜ
- */
-public interface OwnerRepository extends CrudRepository<Owner, Long> {
-    List<Owner> findByNameContainingIgnoreCase(String name);
+import java.util.List;
+
+public interface OwnerRepository extends JpaRepository<Owner, Long> {
+
+    List<Owner> findAllByOrderByName();
+
+    List<Owner> findByNameContainingIgnoreCaseOrderByName(String name);
 }
