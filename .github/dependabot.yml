@@ -4,12 +4,19 @@
 # One weekly pull request per ecosystem; security updates are opened right away.
 version: 2
 updates:
-  - package-ecosystem: maven
+  - package-ecosystem: gomod
     directory: /
     schedule:
       interval: weekly
     groups:
-      maven:
+      gomod:
+        patterns: ["*"]
+  - package-ecosystem: docker
+    directory: /
+    schedule:
+      interval: weekly
+    groups:
+      docker:
         patterns: ["*"]
   - package-ecosystem: github-actions
     directory: /

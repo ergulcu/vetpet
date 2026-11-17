@@ -2,3 +2,9 @@ vetpet
 Copyright 2019 Mehmet ERGULCU
 
 This product includes software developed by Mehmet ERGULCU.
+
+Third-party components:
+
+- Bootstrap 5.3.9 (internal/web/static/bootstrap)
+  Copyright 2011-2026 The Bootstrap Authors
+  Licensed under the MIT License (internal/web/static/bootstrap/LICENSE).

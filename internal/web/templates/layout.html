@@ -1,0 +1,53 @@
+{{/*
+  Copyright 2019 Mehmet ERGULCU
+  SPDX-License-Identifier: Apache-2.0
+*/}}
+{{define "layout"}}<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>{{.Title}} · VetPet</title>
+    <link rel="stylesheet" href="/static/bootstrap/bootstrap.min.css">
+    <link rel="stylesheet" href="/static/css/main.css">
+</head>
+<body>
+{{if .User.Name}}
+<nav class="navbar navbar-expand-md navbar-dark bg-primary mb-4">
+    <div class="container">
+        <a class="navbar-brand" href="/">VetPet</a>
+        <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav"
+                aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+            <span class="navbar-toggler-icon"></span>
+        </button>
+        <div class="collapse navbar-collapse" id="navbarNav">
+            <ul class="navbar-nav me-auto">
+                <li class="nav-item"><a class="nav-link{{if eq .Active "owners"}} active{{end}}" href="/owner/list">Owners</a></li>
+                <li class="nav-item"><a class="nav-link{{if eq .Active "pets"}} active{{end}}" href="/pet/list">Pets</a></li>
+            </ul>
+            <span class="navbar-text me-3">User: <strong>{{.User.Name}}</strong></span>
+            <form action="/logout" method="post" class="d-flex">
+                <button class="btn btn-outline-light btn-sm" type="submit">Sign out</button>
+            </form>
+        </div>
+    </div>
+</nav>
+{{end}}
+<main class="container"{{if .Narrow}} style="max-width: 40rem"{{end}}>
+    {{with .Message}}<div class="alert alert-success" role="alert">{{.}}</div>{{end}}
+    {{with .Error}}<div class="alert alert-danger" role="alert">{{.}}</div>{{end}}
+    {{template "content" .}}
+</main>
+<script src="/static/bootstrap/bootstrap.bundle.min.js"></script>
+</body>
+</html>
+{{end}}
+
+{{/* An input with its label and error message; built with the field function. */}}
+{{define "input"}}
+    <div class="mb-3">
+        <label for="{{.Name}}" class="form-label">{{.Label}}</label>
+        <input type="{{.Type}}" class="form-control{{if .Error}} is-invalid{{end}}" id="{{.Name}}" name="{{.Name}}" value="{{.Value}}"{{with .Placeholder}} placeholder="{{.}}"{{end}}{{if eq .Type "number"}} min="0" max="100"{{end}}>
+        {{with .Error}}<div class="invalid-feedback">{{.}}</div>{{end}}
+    </div>
+{{end}}

@@ -1,0 +1,34 @@
+{{/*
+  Copyright 2019 Mehmet ERGULCU
+  SPDX-License-Identifier: Apache-2.0
+*/}}
+{{define "content"}}
+<h1 class="h3 mb-3">{{.Title}}</h1>
+{{if not .Owners}}
+<p class="alert alert-warning">There are no owners yet. <a href="/owner/create">Add an owner</a> first.</p>
+{{end}}
+<form action="{{if .Pet.ID}}/pet/update/{{.Pet.ID}}{{else}}/pet/create{{end}}" method="post" novalidate>
+    {{template "input" (field "name" "Name" "text" .Pet.Name .Errors)}}
+    <div class="row">
+        <div class="col-sm-6">{{template "input" (placeholder (field "type" "Type" "text" .Pet.Type .Errors) "Dog, cat, bird...")}}</div>
+        <div class="col-sm-6">{{template "input" (placeholder (field "kind" "Kind" "text" .Pet.Kind .Errors) "Breed")}}</div>
+    </div>
+    {{template "input" (field "age" "Age" "number" .Pet.Age .Errors)}}
+    <div class="mb-3">
+        <label for="owner" class="form-label">Owner</label>
+        <select class="form-select{{if .Errors.owner}} is-invalid{{end}}" id="owner" name="owner">
+            <option value="">Select an owner</option>
+            {{range .Owners}}<option value="{{.ID}}"{{if eq (print .ID) $.Pet.OwnerID}} selected{{end}}>{{.Name}}</option>
+            {{end}}
+        </select>
+        {{with .Errors.owner}}<div class="invalid-feedback">{{.}}</div>{{end}}
+    </div>
+    <div class="mb-3">
+        <label for="description" class="form-label">Description</label>
+        <textarea class="form-control{{if .Errors.description}} is-invalid{{end}}" id="description" name="description" rows="3">{{.Pet.Description}}</textarea>
+        {{with .Errors.description}}<div class="invalid-feedback">{{.}}</div>{{end}}
+    </div>
+    <button type="submit" class="btn btn-primary">{{if .Pet.ID}}Update pet{{else}}Create pet{{end}}</button>
+    <a class="btn btn-link" href="/pet/list">Cancel</a>
+</form>
+{{end}}

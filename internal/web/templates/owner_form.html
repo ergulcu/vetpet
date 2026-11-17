@@ -1,0 +1,14 @@
+{{/*
+  Copyright 2019 Mehmet ERGULCU
+  SPDX-License-Identifier: Apache-2.0
+*/}}
+{{define "content"}}
+<h1 class="h3 mb-3">{{.Title}}</h1>
+<form action="{{if .Owner.ID}}/owner/update/{{.Owner.ID}}{{else}}/owner/create{{end}}" method="post" novalidate>
+    {{template "input" (field "name" "Name" "text" .Owner.Name .Errors)}}
+    {{template "input" (field "email" "Email" "email" .Owner.Email .Errors)}}
+    {{template "input" (field "phone" "Phone" "tel" .Owner.Phone .Errors)}}
+    <button type="submit" class="btn btn-primary">{{if .Owner.ID}}Update owner{{else}}Create owner{{end}}</button>
+    <a class="btn btn-link" href="/owner/list">Cancel</a>
+</form>
+{{end}}

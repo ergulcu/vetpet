@@ -1,26 +1,13 @@
 # Build output
-target/
-!.mvn/wrapper/maven-wrapper.jar
-*.class
-*.log
-hs_err_pid*
+/bin/
+/dist/
+*.exe
+*.test
+coverage.out
 
-# Local settings and data
+# Local settings
 .env
-data/
 
 # IDEs
 .idea/
-*.iml
-*.iws
-*.ipr
 .vscode/
-.classpath
-.project
-.settings/
-.factorypath
-.apt_generated/
-.sts4-cache/
-nbproject/private/
-nb-configuration.xml
-nbactions.xml

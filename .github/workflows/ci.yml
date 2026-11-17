@@ -1,12 +1,12 @@
 # Copyright 2019 Mehmet ERGULCU
 # SPDX-License-Identifier: Apache-2.0
 
-# Build and test on every push and pull request.
+# Test on every push and pull request; SQLite runs in the process.
 name: CI
 
 on:
   push:
-    branches: [main, master]
+    branches: [main]
   pull_request:
 
 permissions:
@@ -17,24 +17,54 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
-  build:
-    name: Build and test
+  test:
+    name: gofmt, vet, test
     runs-on: ubuntu-latest
-    timeout-minutes: 30
+    timeout-minutes: 15
     steps:
       - uses: actions/checkout@v7
-      - uses: actions/setup-java@v6
+      - uses: actions/setup-go@v7
         with:
-          distribution: temurin
-          java-version: 25
-          cache: maven
-      - name: Build, unit and integration tests
-        run: ./mvnw -B -ntp verify
+          go-version-file: go.mod
+      - name: gofmt
+        run: |
+          unformatted=$(gofmt -l .)
+          if [ -n "$unformatted" ]; then echo "Run gofmt -w on:"; echo "$unformatted"; exit 1; fi
+      - run: go vet ./...
+      - name: Test
+        run: go test -race ./...
+      - name: Build for Linux, Windows and macOS
+        run: |
+          for target in linux/amd64 linux/arm64 windows/amd64 darwin/arm64; do
+            GOOS=${target%/*} GOARCH=${target#*/} CGO_ENABLED=0 go build -o /dev/null ./cmd/...
+          done
       - name: License headers
         run: |
-          missing=$(git ls-files '*.java' '*.yml' '*.yaml' '*.xml' '*.sql' '*.properties' '*.html' '*.css' '*.fxml' 'Dockerfile' '*.sh' | grep -v -E '^\.mvn/' | xargs -r grep -L 'SPDX-License-Identifier' || true)
+          missing=$(git ls-files '*.go' '*.yml' '*.yaml' '*.sql' '*.html' 'Dockerfile' | xargs -r grep -L 'SPDX-License-Identifier' || true)
           if [ -n "$missing" ]; then
             echo "These files have no license header:"
             echo "$missing"
             exit 1
           fi
+
+  image:
+    name: Docker image
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v7
+      - run: docker compose up -d --build --wait
+      - name: Sign in, create an owner and find it after a restart
+        run: |
+          for i in $(seq 1 30); do curl -sf localhost:8080/healthz && break; sleep 1; done
+          login() { rm -f jar; curl -sf -c jar -b jar -o /dev/null -H 'Sec-Fetch-Site: same-origin'             -d username=admin -d password=admin localhost:8080/login; }
+          login
+          curl -sf -c jar -b jar -o /dev/null -H 'Sec-Fetch-Site: same-origin' -d name=Ali -d email=ali@example.com             localhost:8080/owner/create
+          docker compose restart vetpet
+          for i in $(seq 1 30); do curl -sf localhost:8080/healthz && break; sleep 1; done
+          login
+          curl -sf -b jar localhost:8080/owner/list | grep -q 'ali@example.com'
+      - if: failure()
+        run: docker compose logs vetpet
+      - if: always()
+        run: docker compose down -v

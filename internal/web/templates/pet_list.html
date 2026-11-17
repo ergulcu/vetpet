@@ -1,0 +1,60 @@
+{{/*
+  Copyright 2019 Mehmet ERGULCU
+  SPDX-License-Identifier: Apache-2.0
+*/}}
+{{define "content"}}
+<div class="d-flex flex-wrap gap-2 justify-content-between align-items-center mb-3">
+    <h1 class="h3 mb-0">Pets</h1>
+    <a class="btn btn-success" href="/pet/create">Add a pet</a>
+</div>
+
+<form action="/pet/list" method="get" class="row g-2 mb-3" role="search">
+    <div class="col-sm-6 col-md-4">
+        <label for="name" class="visually-hidden">Name</label>
+        <input type="search" class="form-control" id="name" name="name" value="{{.Search}}" placeholder="Search by name">
+    </div>
+    <div class="col-auto">
+        <button type="submit" class="btn btn-primary">Search</button>
+    </div>
+</form>
+
+{{if not .Pets}}
+<p class="text-body-secondary">No pets found.</p>
+{{else}}
+<div class="table-responsive">
+    <table class="table table-striped align-middle">
+        <thead>
+        <tr>
+            <th scope="col">Name</th>
+            <th scope="col">Type</th>
+            <th scope="col">Kind</th>
+            <th scope="col">Age</th>
+            <th scope="col">Description</th>
+            <th scope="col">Owner</th>
+            <th scope="col" class="text-end">Actions</th>
+        </tr>
+        </thead>
+        <tbody>
+        {{range .Pets}}
+        <tr>
+            <td>{{.Name}}</td>
+            <td>{{.Type}}</td>
+            <td>{{.Kind}}</td>
+            <td>{{age .Age}}</td>
+            <td>{{.Description}}</td>
+            <td>{{.OwnerName}}</td>
+            <td class="text-end">
+                <a class="btn btn-sm btn-outline-primary" href="/pet/update/{{.ID}}">Edit</a>
+                {{if $.User.IsAdmin}}
+                <form action="/pet/delete/{{.ID}}" method="post" class="d-inline" onsubmit="return confirm('Delete this pet?');">
+                    <button type="submit" class="btn btn-sm btn-outline-danger">Delete</button>
+                </form>
+                {{end}}
+            </td>
+        </tr>
+        {{end}}
+        </tbody>
+    </table>
+</div>
+{{end}}
+{{end}}

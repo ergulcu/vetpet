@@ -1,0 +1,17 @@
+# Copyright 2019 Mehmet ERGULCU
+# SPDX-License-Identifier: Apache-2.0
+
+# docker compose up --build      http://localhost:8080
+services:
+  vetpet:
+    build: .
+    ports:
+      - "8080:8080"
+    environment:
+      VETPET_SECURITY_ADMIN_PASSWORD: ${VETPET_SECURITY_ADMIN_PASSWORD:-admin}
+      VETPET_SECURITY_USER_PASSWORD: ${VETPET_SECURITY_USER_PASSWORD:-user}
+    volumes:
+      - vetpet-data:/data
+
+volumes:
+  vetpet-data:
